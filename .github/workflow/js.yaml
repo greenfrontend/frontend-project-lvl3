@@ -1,0 +1,26 @@
+name: run linter
+
+on:
+  - push
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        node_version: [12]
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Use Node.js ${{ matrix.node_version }}
+        uses: actions/setup-node@v1
+        with:
+          version: ${{ matrix.node_version }}
+
+      - name: Install Dependencies
+        run: make install
+
+      - name: Lint
+        run: make lint
