@@ -6,12 +6,14 @@
 
 // состояния:
 // 'ввод'
-// 'поток добавлен' (форма принимает первоначальный вид (очищается инпут), а в список потоков добавляется новый)
+// 'поток добавлен' (форма принимает первоначальный вид (очищается инпут),
+// а в список потоков добавляется новый)
 
 // список (выводится заголовок (title) и описание (description) из RSS)
 // Кроме того, на странице должен быть список постов, загруженных из каждого потока.
 // Он заполняется после успешного добавления нового потока.
-// Каждый элемент в этом списке представляет из себя ссылку на пост, где текст ссылки - название поста.
+// Каждый элемент в этом списке представляет из себя ссылку на пост,
+// где текст ссылки - название поста.
 
 // Domain data — данные приложения, которые нужно отображать, использовать и модифицировать.
 // Например, список пользователей, загруженный с сервера.
@@ -30,15 +32,18 @@
 // https://www.smashingmagazine.com/feed
 
 import axios from 'axios';
-import * as yup from 'yup'
-const schema = yup.string().url();
+import * as yup from 'yup';
 import { watch } from 'melanke-watchjs';
+
+const schema = yup.string().url();
 
 // validateUrl(feedUrl).then(c => console.log(c))
 const validateUrl = (url) => schema.isValid(url);
 
-// const wasAddedBefore = !!state.lists.find(({ name }) => name.toLowerCase() === value.toLowerCase());
-const validateFeed = (feeds, feed) => feeds.includes(feed);
+// const wasAddedBefore = !!state.lists.find(({ name })
+// => name.toLowerCase() === value.toLowerCase());
+
+// const validateFeed = (feeds, feed) => feeds.includes(feed);
 
 const parse = (xmlData) => {
   const domParser = new DOMParser();
@@ -57,7 +62,7 @@ const parse = (xmlData) => {
     return {
       title: titleNode.textContent,
       link: linkNode.textContent,
-    }
+    };
   };
 
   const postsNodes = doc.querySelectorAll('item');
@@ -66,7 +71,7 @@ const parse = (xmlData) => {
   const result = {
     feedTitle,
     feedDescription,
-    posts
+    posts,
   };
 
   return result;
@@ -78,15 +83,15 @@ export default () => {
 
   axios.get(`${corsApi}${feedUrl}`)
     .then((resp) => {
-      console.log(parse(resp.data))
-    })
+      console.log(parse(resp.data));
+    });
 };
 
 // Возникает событие => Меняется состояние => Обновляется DOM
 // TODO: make spinner!
 
 const state = {
-  processState: 'waiting',  //  waiting | filling | processing
+  processState: 'waiting', //  waiting | filling | processing
   validationState: 'valid', //  valid   | invalid
   errors: [],
   inputValue: '',
@@ -94,8 +99,14 @@ const state = {
   feedData: {},
 };
 
+const elements = {
+  input: document.getElementById('rss'),
+  button: document.getElementById('submitButton'),
+  form: document.getElementById('form'),
+};
+
 watch(state, 'processState', () => {
-  console.log(state.processState)
+  console.log(state.processState);
   switch (state.processState) {
     case 'waiting': {
       elements.button.disabled = true;
@@ -119,11 +130,6 @@ watch(state, 'processState', () => {
   }
 });
 
-const elements = {
-  input: document.getElementById('rss'),
-  button: document.getElementById('submitButton'),
-  form: document.getElementById('form')
-};
 
 elements.input.addEventListener('input', (e) => {
   const url = e.target.value.trim();
@@ -131,11 +137,11 @@ elements.input.addEventListener('input', (e) => {
     state.processState = 'filling';
     validateUrl(url).then((result) => {
       if (result) {
-        state.validationState = 'valid'
+        state.validationState = 'valid';
       } else {
-        state.validationState = 'invalid'
+        state.validationState = 'invalid';
       }
-    })
+    });
   } else {
     state.processState = 'waiting';
   }
