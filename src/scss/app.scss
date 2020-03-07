@@ -1,5 +1,9 @@
 @import "~bootstrap/scss/bootstrap";
 
+button:disabled {
+  cursor: not-allowed;
+}
+
 .rss-help-wrapper {
   margin-bottom: 0.2rem;
 }

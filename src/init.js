@@ -30,15 +30,15 @@
 // отображение спиннеров — всё это следствия каких-то процессов.
 // Возникает событие => Меняется состояние => Обновляется DOM
 
-
-// https://www.smashingmagazine.com/feed
-
-// import axios from 'axios';
+import axios from 'axios';
 import * as yup from 'yup';
 import { watch } from 'melanke-watchjs';
 import _ from 'lodash';
 
 const schema = yup.string().url();
+
+const corsApi = 'https://cors-anywhere.herokuapp.com/';
+const exampleUrl = 'https://www.smashingmagazine.com/feed';
 
 const errorMessages = {
   url: {
@@ -50,17 +50,17 @@ const errorMessages = {
 
 const validate = (fields, feeds = []) => {
   const errors = {};
-
+  const wasAddedBefore = !!feeds
+    .find(({ url }) => url.toLowerCase() === fields.url.toLowerCase());
+  if (wasAddedBefore) {
+    errors.addedBefore = errorMessages.url.addedBefore;
+  }
   if (fields.url.length === 0) {
     errors.empty = errorMessages.url.empty;
-  }
-  if (feeds.includes(fields.url)) {
-    errors.addedBefore = errorMessages.url.addedBefore;
   }
   if (!schema.isValidSync(fields.url)) {
     errors.valid = errorMessages.url.valid;
   }
-
   return errors;
 };
 
@@ -72,42 +72,75 @@ const updateValidationState = (state) => {
   state.form.valid = _.isEqual(errors, {});
 };
 
-// const wasAddedBefore = !!state.lists.find(({ name })
-// => name.toLowerCase() === value.toLowerCase());
+const parse = (xmlData) => {
+  const domParser = new DOMParser();
+  const doc = domParser.parseFromString(xmlData, 'text/xml');
 
-// const validateFeed = (feeds, feed) => feeds.includes(feed);
+  const feedTitleNode = doc.querySelector('title');
+  const title = feedTitleNode.textContent;
 
-// const parse = (xmlData) => {
-//   const domParser = new DOMParser();
-//   const doc = domParser.parseFromString(xmlData, 'text/xml');
-//
-//   const feedTitleNode = doc.querySelector('title');
-//   const feedTitle = feedTitleNode.textContent;
-//
-//   const feedDescriptionNode = doc.querySelector('description');
-//   const feedDescription = feedDescriptionNode.textContent;
-//
-//   const extractPostData = (post) => {
-//     const titleNode = post.querySelector('title');
-//     const linkNode = post.querySelector('link');
-//
-//     return {
-//       title: titleNode.textContent,
-//       link: linkNode.textContent,
-//     };
-//   };
-//
-//   const postsNodes = doc.querySelectorAll('item');
-//   const posts = [...postsNodes].map(extractPostData);
-//
-//   const result = {
-//     feedTitle,
-//     feedDescription,
-//     posts,
-//   };
-//
-//   return result;
-// };
+  const feedDescriptionNode = doc.querySelector('description');
+  const description = feedDescriptionNode.textContent;
+
+  const extractPostData = (post) => {
+    const titleNode = post.querySelector('title');
+    const linkNode = post.querySelector('link');
+
+    return {
+      title: titleNode.textContent,
+      link: linkNode.textContent,
+    };
+  };
+
+  const postsNodes = doc.querySelectorAll('item');
+  const posts = [...postsNodes].map(extractPostData);
+
+  const result = {
+    title,
+    description,
+    posts,
+  };
+
+  return result;
+};
+
+const createPost = (title, href) => {
+  const li = document.createElement('li');
+  const a = document.createElement('a');
+  const linkText = document.createTextNode(title);
+  a.setAttribute('href', href);
+  a.setAttribute('target', '_blank');
+  a.appendChild(linkText);
+  li.appendChild(a);
+  return li;
+};
+
+const createPosts = (posts) => {
+  if (posts.lenght === 0) {
+    return '';
+  }
+  const ul = document.createElement('ul');
+  ul.classList.add('list-unstyled');
+  posts.forEach(({ title, link }) => {
+    const post = createPost(title, link);
+    ul.appendChild(post);
+  });
+  return ul;
+};
+
+const createFeed = ({ title, description, posts }) => {
+  const section = document.createElement('section');
+  const titleElement = document.createElement('h3');
+  titleElement.textContent = title;
+  const descriptionElement = document.createElement('small');
+  descriptionElement.classList.add('text-muted');
+  descriptionElement.textContent = description;
+  titleElement.appendChild(descriptionElement);
+  const postsElement = createPosts(posts);
+  section.appendChild(titleElement);
+  section.appendChild(postsElement);
+  return section;
+};
 
 export default () => {
   const state = {
@@ -128,14 +161,18 @@ export default () => {
     button: document.getElementById('submitButton'),
     form: document.getElementById('form'),
     rssHelp: document.getElementById('rssHelp'),
+    feeds: document.getElementById('feeds'),
   };
 
   elements.rssHelp.addEventListener('click', () => {
-    state.form.fields.url = 'https://www.smashingmagazine.com/feed';
+    state.form.fields.url = exampleUrl;
+    state.form.processState = 'filling';
     state.form.valid = true;
+    updateValidationState(state);
   });
 
   elements.input.addEventListener('input', (e) => {
+    state.form.processState = 'filling';
     const url = e.target.value.trim();
     state.form.fields.url = url;
     updateValidationState(state);
@@ -143,19 +180,42 @@ export default () => {
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-    console.log('submitted');
+    state.form.processState = 'processing';
+    const { url } = state.form.fields;
+
+    axios.get(`${corsApi}${url}`)
+      .then((resp) => {
+        const parsedData = parse(resp.data);
+        const id = _.uniqueId('feed');
+        state.feedList = [...state.feedList, { id, url }];
+        state.feedData = {
+          ...state.feedData,
+          [id]: { id, url, ...parsedData },
+        };
+        state.form.processState = 'finished';
+        state.form.fields.url = '';
+      })
+      .catch((err) => {
+        state.form.errors = {
+          network: 'Network Problems. Try again later.',
+        };
+        state.form.processState = 'filling';
+        throw err;
+      });
   });
 
-  // const corsApi = 'https://cors-anywhere.herokuapp.com/';
-  // const feedUrl = 'https://www.smashingmagazine.com/feed';
-  //
-  // axios.get(`${corsApi}${feedUrl}`)
-  //   .then((resp) => {
-  //     console.log(parse(resp.data));
-  //   });
+  watch(state, 'feedData', () => {
+    elements.feeds.innerHTML = '';
+    const feeds = Object.keys(state.feedData);
+    feeds.forEach((id) => {
+      const feed = createFeed(state.feedData[id]);
+      elements.feeds.appendChild(feed);
+    });
+  });
 
   watch(state.form.fields, 'url', () => {
     elements.input.value = state.form.fields.url;
+    elements.input.classList.remove('is-invalid');
   });
 
   watch(state.form, 'errors', () => {
@@ -196,6 +256,11 @@ export default () => {
       }
       case 'processing': {
         elements.button.disabled = true;
+        break;
+      }
+      case 'finished': {
+        elements.input.value = '';
+        elements.input.classList.remove('is-valid');
         break;
       }
       default:

@@ -1,42 +1,45 @@
 <!doctype html>
 <html>
-  <head>
-    <title>RSS Feed Reader</title>
-  </head>
-  <body>
-  <div class="jumbotron jumbotron-fluid">
-    <div class="container">
-      <form id="form">
-        <div class="form-group">
-          <label for="url">Add Rss Feed: </label>
-          <small
-            id="rssHelp"
-            class="form-text text-muted rss-help-wrapper"
-          >
-            for example:
-            <span class="rss-help">
+<head>
+  <title>RSS Feed Reader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <form id="form">
+      <div class="form-group">
+        <label for="url">Add Rss Feed: </label>
+        <small
+          id="rssHelp"
+          class="form-text text-muted rss-help-wrapper"
+        >
+          for example:
+          <span class="rss-help">
               https://www.smashingmagazine.com/feed
             </span>
-          </small>
-          <input
-            type="text"
-            class="form-control"
-            id="url"
-            aria-describedby="rssFeed"
-            autocomplete="off"
-            placeholder="rss link"
-          >
-        </div>
-        <button
-          id="submitButton"
-          type="submit"
-          class="btn btn-primary"
-          disabled
+        </small>
+        <input
+          type="text"
+          class="form-control"
+          id="url"
+          aria-describedby="rssFeed"
+          autocomplete="off"
+          placeholder="rss link"
         >
-          Add
-        </button>
-      </form>
-    </div>
+      </div>
+      <button
+        id="submitButton"
+        type="submit"
+        class="btn btn-primary"
+        disabled
+      >
+        Add
+      </button>
+    </form>
   </div>
-  </body>
+</div>
+<div id="feeds" class="container">
+</div>
+</body>
 </html>
