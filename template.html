@@ -8,13 +8,23 @@
     <div class="container">
       <form id="form">
         <div class="form-group">
-          <label for="url">Rss feed: </label>
+          <label for="url">Add Rss Feed: </label>
+          <small
+            id="rssHelp"
+            class="form-text text-muted rss-help-wrapper"
+          >
+            for example:
+            <span class="rss-help">
+              https://www.smashingmagazine.com/feed
+            </span>
+          </small>
           <input
             type="text"
             class="form-control"
             id="url"
             aria-describedby="rssFeed"
             autocomplete="off"
+            placeholder="rss link"
           >
         </div>
         <button

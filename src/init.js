@@ -127,12 +127,23 @@ export default () => {
     input: document.getElementById('url'),
     button: document.getElementById('submitButton'),
     form: document.getElementById('form'),
+    rssHelp: document.getElementById('rssHelp'),
   };
+
+  elements.rssHelp.addEventListener('click', () => {
+    state.form.fields.url = 'https://www.smashingmagazine.com/feed';
+    state.form.valid = true;
+  });
 
   elements.input.addEventListener('input', (e) => {
     const url = e.target.value.trim();
     state.form.fields.url = url;
     updateValidationState(state);
+  });
+
+  elements.form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    console.log('submitted');
   });
 
   // const corsApi = 'https://cors-anywhere.herokuapp.com/';
@@ -142,6 +153,10 @@ export default () => {
   //   .then((resp) => {
   //     console.log(parse(resp.data));
   //   });
+
+  watch(state.form.fields, 'url', () => {
+    elements.input.value = state.form.fields.url;
+  });
 
   watch(state.form, 'errors', () => {
     const { url } = state.form.fields;
