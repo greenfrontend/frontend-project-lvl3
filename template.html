@@ -1,17 +1,30 @@
 <!doctype html>
 <html>
   <head>
-    <title>Webpack Package</title>
+    <title>RSS Feed Reader</title>
   </head>
   <body>
   <div class="jumbotron jumbotron-fluid">
     <div class="container">
       <form id="form">
         <div class="form-group">
-          <label for="rss">Rss feed: </label>
-          <input type="text" class="form-control" id="rss" aria-describedby="rssFeed">
+          <label for="url">Rss feed: </label>
+          <input
+            type="text"
+            class="form-control"
+            id="url"
+            aria-describedby="rssFeed"
+            autocomplete="off"
+          >
         </div>
-        <button id="submitButton" type="submit" class="btn btn-primary">Add</button>
+        <button
+          id="submitButton"
+          type="submit"
+          class="btn btn-primary"
+          disabled
+        >
+          Add
+        </button>
       </form>
     </div>
   </div>
