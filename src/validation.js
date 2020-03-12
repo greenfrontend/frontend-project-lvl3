@@ -1,13 +1,20 @@
 import _ from 'lodash';
 import * as yup from 'yup';
+import i18next from 'i18next';
+import resources from './locales';
+
+i18next.init({
+  lng: 'en',
+  resources,
+});
 
 const schema = yup.string().url();
 
 const errorMessages = {
   url: {
-    valid: 'Value is not a valid url',
-    addedBefore: 'URL was added before',
-    empty: 'URL cannot be empty',
+    valid: i18next.t('validation.valid'),
+    addedBefore: i18next.t('validation.addedBefore'),
+    empty: i18next.t('validation.empty'),
   },
 };
 
