@@ -5,8 +5,8 @@ export default {
     },
     validation: {
       valid: 'Value is not a valid url',
-      addedBefore: 'URL was added before',
-      empty: 'URL cannot be empty',
+      addedBefore: 'Feed URL was added before',
+      empty: 'Feed URL cannot be empty',
     },
   },
 };

@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import axios from 'axios';
-import _ from 'lodash';
+import uniqueId from 'lodash/uniqueId';
 import view from './view';
 import parse from './parse';
 import updateValidationState from './validation';
@@ -37,8 +37,8 @@ export default () => {
 
   elements.rssHelp.addEventListener('click', (e) => {
     e.preventDefault();
-    state.form.fields.url = e.target.href;
     state.form.processState = 'filling';
+    state.form.fields.url = e.target.href;
     state.form.valid = true;
     updateValidationState(state);
   });
@@ -58,7 +58,7 @@ export default () => {
     axios.get(`${corsApi}${url}`)
       .then((resp) => {
         const parsedData = parse(resp.data);
-        const id = _.uniqueId('feed');
+        const id = uniqueId('feed');
         state.feedList = [...state.feedList, { id, url }];
         state.feedData = {
           ...state.feedData,
@@ -66,6 +66,7 @@ export default () => {
         };
         state.form.processState = 'finished';
         state.form.fields.url = '';
+        state.form.valid = false;
       })
       .catch((err) => {
         state.form.errors = {

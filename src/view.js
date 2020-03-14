@@ -1,5 +1,5 @@
 import { watch } from 'melanke-watchjs';
-import _ from 'lodash';
+import head from 'lodash/head';
 
 const createPost = (title, href) => {
   const li = document.createElement('li');
@@ -13,7 +13,7 @@ const createPost = (title, href) => {
 };
 
 const createPosts = (posts) => {
-  if (posts.lenght === 0) {
+  if (posts.length === 0) {
     return '';
   }
   const ul = document.createElement('ul');
@@ -31,7 +31,7 @@ const createFeed = ({ title, description, posts }) => {
   titleElement.textContent = title;
   const descriptionElement = document.createElement('small');
   descriptionElement.classList.add('text-muted');
-  descriptionElement.textContent = description;
+  descriptionElement.textContent = ` ${description}`;
   titleElement.appendChild(descriptionElement);
   const postsElement = createPosts(posts);
   section.appendChild(titleElement);
@@ -56,15 +56,14 @@ export default (state, elements) => {
   });
 
   watch(state.form, 'errors', () => {
-    const { url } = state.form.fields;
     const urlErrorMessages = Object.values(state.form.errors);
-    const errorMessage = _.head(urlErrorMessages);
+    const errorMessage = head(urlErrorMessages);
     const errorElement = elements.input.nextElementSibling;
     if (errorElement) {
       elements.input.classList.remove('is-invalid');
       errorElement.remove();
     }
-    if (!errorMessage || url === '') {
+    if (!errorMessage) {
       return;
     }
     const feedbackElement = document.createElement('div');

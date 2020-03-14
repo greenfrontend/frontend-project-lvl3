@@ -1,7 +1,6 @@
 export default (xmlData) => {
   const domParser = new DOMParser();
   const doc = domParser.parseFromString(xmlData, 'text/xml');
-
   const feedTitleNode = doc.querySelector('title');
   const title = feedTitleNode.textContent;
 

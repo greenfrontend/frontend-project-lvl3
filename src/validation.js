@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import isEqual from 'lodash/isEqual';
 import * as yup from 'yup';
 import i18next from 'i18next';
 import resources from './locales';
@@ -37,5 +37,5 @@ const validate = (fields, feeds = []) => {
 export default (state) => {
   const errors = validate(state.form.fields, state.feedList);
   state.form.errors = errors;
-  state.form.valid = _.isEqual(errors, {});
+  state.form.valid = isEqual(errors, {});
 };
