@@ -20,9 +20,7 @@ const errorMessages = {
 
 const validate = (fields, feeds = []) => {
   const errors = {};
-  const wasAddedBefore = !!feeds
-    .find(({ url }) => url.toLowerCase() === fields.url.toLowerCase());
-  if (wasAddedBefore) {
+  if (feeds.includes(fields.url)) {
     errors.addedBefore = errorMessages.url.addedBefore;
   }
   if (fields.url.length === 0) {

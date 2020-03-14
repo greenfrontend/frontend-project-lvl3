@@ -1,12 +1,41 @@
 import i18next from 'i18next';
 import axios from 'axios';
-import uniqueId from 'lodash/uniqueId';
+import differenceBy from 'lodash/differenceBy';
 import view from './view';
 import parse from './parse';
 import updateValidationState from './validation';
 import resources from './locales';
 
 const corsApi = 'https://cors-anywhere.herokuapp.com/';
+
+const getNewPosts = (newPosts, oldPosts) => differenceBy(newPosts, oldPosts, 'link');
+
+let timeoutID = null;
+
+const planUpdates = (appState) => {
+  if (timeoutID) {
+    clearTimeout(timeoutID);
+  }
+
+  timeoutID = setTimeout(() => makeUpdates(appState), 5000);
+};
+
+const makeUpdates = (appState) => {
+  const feedsUrls = appState.feedList.map((feed) => `${corsApi}${feed}`);
+  const promises = feedsUrls.map(axios.get);
+  Promise.all(promises).then((responses) => {
+    const newData = responses.map((resp) => parse(resp.data));
+    newData.forEach((newFeed, index) => {
+      const oldFeed = appState.feedData[appState.feedList[index]];
+      const newPosts = getNewPosts(newFeed.posts, oldFeed.posts);
+      appState.feedData[oldFeed.url].posts = [
+        ...newPosts,
+        ...oldFeed.posts,
+      ];
+    });
+    planUpdates(appState);
+  });
+};
 
 export default () => {
   i18next.init({
@@ -58,15 +87,18 @@ export default () => {
     axios.get(`${corsApi}${url}`)
       .then((resp) => {
         const parsedData = parse(resp.data);
-        const id = uniqueId('feed');
-        state.feedList = [...state.feedList, { id, url }];
+
+        state.feedList = [...state.feedList, url];
         state.feedData = {
           ...state.feedData,
-          [id]: { id, url, ...parsedData },
+          [url]: { url, ...parsedData },
         };
+
         state.form.processState = 'finished';
         state.form.fields.url = '';
         state.form.valid = false;
+
+        planUpdates(state);
       })
       .catch((err) => {
         state.form.errors = {
