@@ -1,6 +1,6 @@
 # frontend-project-lvl3
 
-### Yet Another RSS reader
+### Yet Another RSS reader [DEMO](https://frontend-project-lvl3-seven.now.sh/)
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/647f1cebec558cbaedd0/maintainability)](https://codeclimate.com/github/greenfrontend/frontend-project-lvl3/maintainability)
 ![run linter](https://github.com/greenfrontend/frontend-project-lvl3/workflows/run%20linter/badge.svg?branch=master) 
