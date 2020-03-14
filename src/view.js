@@ -1,5 +1,6 @@
 import { watch } from 'melanke-watchjs';
 import head from 'lodash/head';
+import i18next from 'i18next';
 
 const createPost = (title, href) => {
   const li = document.createElement('li');
@@ -87,16 +88,21 @@ export default (state, elements) => {
     const { processState } = state.form;
     switch (processState) {
       case 'filling': {
-        elements.button.disabled = false;
+        elements.button.disabled = !state.form.valid;
         break;
       }
       case 'processing': {
         elements.button.disabled = true;
+        elements.button.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          ${i18next.t('form.button.loading')}
+        `;
         break;
       }
       case 'finished': {
         elements.input.value = '';
         elements.input.classList.remove('is-valid');
+        elements.button.innerText = i18next.t('form.button.text');
         break;
       }
       default:
