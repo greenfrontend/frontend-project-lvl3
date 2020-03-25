@@ -9,39 +9,27 @@ import resources from './locales';
 const corsApi = 'https://cors-anywhere.herokuapp.com/';
 
 const getNewPosts = (newPosts, oldPosts) => differenceBy(newPosts, oldPosts, 'link');
-
-let timeoutID = null;
-
-const planUpdates = (appState) => {
-  if (timeoutID) {
-    clearTimeout(timeoutID);
-  }
-
-  timeoutID = setTimeout(() => makeUpdates(appState), 5000);
-};
-
-const makeUpdates = (appState) => {
-  const feedsUrls = appState.feedList.map((feed) => `${corsApi}${feed}`);
-  const promises = feedsUrls.map(axios.get);
-  Promise.all(promises).then((responses) => {
-    const newData = responses.map((resp) => parse(resp.data));
-    newData.forEach((newFeed, index) => {
-      const oldFeed = appState.feedData[appState.feedList[index]];
-      const newPosts = getNewPosts(newFeed.posts, oldFeed.posts);
-      appState.feedData[oldFeed.url].posts = [
-        ...newPosts,
-        ...oldFeed.posts,
-      ];
-    });
-    planUpdates(appState);
-  });
-};
+const addIdToPost = (id) => (post) => ({ ...post, feedId: id });
+const makeFeed = (url, parsedData) => ({
+  url,
+  id: url,
+  title: parsedData.title,
+  description: parsedData.description,
+});
 
 export default () => {
   i18next.init({
     lng: 'en',
     resources,
   });
+
+  const errorMessagesKeys = {
+    url: {
+      valid: 'validation.valid',
+      addedBefore: 'validation.addedBefore',
+      empty: 'validation.empty',
+    },
+  };
 
   const state = {
     form: {
@@ -52,8 +40,42 @@ export default () => {
       valid: false,
       errors: {},
     },
-    feedList: [],
-    feedData: {},
+    feeds: [],
+    posts: [],
+  };
+
+  const makeUpdates = () => {
+    const feedsUrls = state.feeds.map(({ url }) => `${corsApi}${url}`);
+    const promises = feedsUrls.map(axios.get);
+
+    Promise.all(promises).then((responses) => {
+      const newData = responses.map((resp) => parse(resp.data));
+
+      newData.forEach((newFeed, index) => {
+        const oldFeed = state.feeds[index];
+        const oldPosts = state.posts.filter(({ feedId }) => feedId === oldFeed.id);
+
+        const newPosts = getNewPosts(newFeed.posts, oldPosts)
+          .map(addIdToPost(oldFeed.id));
+
+        state.posts = newPosts.concat(state.posts);
+      });
+
+      setTimeout(() => {
+        makeUpdates();
+      }, 5000);
+    });
+  };
+
+  const planUpdates = () => makeUpdates();
+
+  const validate = () => {
+    const { errors, valid } = updateValidationState({
+      ...state.form.fields,
+      feeds: state.feeds,
+    }, errorMessagesKeys);
+    state.form.errors = errors;
+    state.form.valid = valid;
   };
 
   const elements = {
@@ -69,14 +91,14 @@ export default () => {
     state.form.processState = 'filling';
     state.form.fields.url = e.target.href;
     state.form.valid = true;
-    updateValidationState(state);
+    validate();
   });
 
   elements.input.addEventListener('input', (e) => {
     state.form.processState = 'filling';
     const url = e.target.value.trim();
     state.form.fields.url = url;
-    updateValidationState(state);
+    validate();
   });
 
   elements.form.addEventListener('submit', (e) => {
@@ -87,22 +109,23 @@ export default () => {
     axios.get(`${corsApi}${url}`)
       .then((resp) => {
         const parsedData = parse(resp.data);
-
-        state.feedList = [...state.feedList, url];
-        state.feedData = {
-          ...state.feedData,
-          [url]: { url, ...parsedData },
-        };
+        const feed = makeFeed(url, parsedData);
+        state.feeds.push(feed);
+        const feedPosts = parsedData.posts.map(addIdToPost(feed.id));
+        state.posts.push(...feedPosts);
 
         state.form.processState = 'finished';
         state.form.fields.url = '';
         state.form.valid = false;
 
-        planUpdates(state);
+        const isUpdatesAlreadyPlanned = state.feeds.length < 2;
+        if (isUpdatesAlreadyPlanned) {
+          setTimeout(() => planUpdates(), 5000);
+        }
       })
       .catch((err) => {
         state.form.errors = {
-          network: i18next.t('errors.network'),
+          network: 'errors.network',
         };
         state.form.processState = 'filling';
         throw err;

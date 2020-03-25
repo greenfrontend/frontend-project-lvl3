@@ -12,7 +12,7 @@ publish:
 	npm publish
 
 publish-test:
-	npx eslint .
+	make lint
 	npm publish --dry-run
 
 lint:

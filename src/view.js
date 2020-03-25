@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import { watch } from 'melanke-watchjs';
 import head from 'lodash/head';
 import i18next from 'i18next';
@@ -40,13 +41,12 @@ const createFeed = ({ title, description, posts }) => {
   return section;
 };
 
-
 export default (state, elements) => {
-  watch(state, 'feedData', () => {
+  watch(state, 'posts', () => {
     elements.feeds.innerHTML = '';
-    const feeds = Object.keys(state.feedData);
-    feeds.forEach((id) => {
-      const feed = createFeed(state.feedData[id]);
+    state.feeds.forEach(({ id, title, description }) => {
+      const posts = state.posts.filter((p) => p.feedId === id);
+      const feed = createFeed({ title, description, posts });
       elements.feeds.appendChild(feed);
     });
   });
@@ -69,7 +69,7 @@ export default (state, elements) => {
     }
     const feedbackElement = document.createElement('div');
     feedbackElement.classList.add('invalid-feedback');
-    feedbackElement.innerHTML = errorMessage;
+    feedbackElement.innerHTML = i18next.t(errorMessage);
     elements.input.classList.add('is-invalid');
     elements.input.after(feedbackElement);
   });
@@ -89,6 +89,7 @@ export default (state, elements) => {
     switch (processState) {
       case 'filling': {
         elements.button.disabled = !state.form.valid;
+        elements.button.innerText = i18next.t('form.button.text');
         break;
       }
       case 'processing': {
