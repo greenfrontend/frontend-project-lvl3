@@ -3,7 +3,15 @@ import * as yup from 'yup';
 
 const schema = yup.string().url();
 
-const validate = (fields, errorMessages) => {
+const errorMessages = {
+  url: {
+    valid: 'validation.valid',
+    addedBefore: 'validation.addedBefore',
+    empty: 'validation.empty',
+  },
+};
+
+const validate = (fields) => {
   const errors = {};
   const wasAddedBefore = !!fields.feeds
     .find(({ url }) => url.toLowerCase() === fields.url.toLowerCase());
@@ -19,7 +27,7 @@ const validate = (fields, errorMessages) => {
   return errors;
 };
 
-export default (fields, errorMessages) => {
+export default (fields) => {
   const errors = validate(fields, errorMessages);
   const valid = isEqual(errors, {});
   return { errors, valid };

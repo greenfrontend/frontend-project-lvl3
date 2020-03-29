@@ -23,14 +23,6 @@ export default () => {
     resources,
   });
 
-  const errorMessagesKeys = {
-    url: {
-      valid: 'validation.valid',
-      addedBefore: 'validation.addedBefore',
-      empty: 'validation.empty',
-    },
-  };
-
   const state = {
     form: {
       fields: {
@@ -73,7 +65,7 @@ export default () => {
     const { errors, valid } = updateValidationState({
       ...state.form.fields,
       feeds: state.feeds,
-    }, errorMessagesKeys);
+    });
     state.form.errors = errors;
     state.form.valid = valid;
   };
@@ -90,7 +82,6 @@ export default () => {
     e.preventDefault();
     state.form.processState = 'filling';
     state.form.fields.url = e.target.href;
-    state.form.valid = true;
     validate();
   });
 
