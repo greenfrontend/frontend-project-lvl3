@@ -11,8 +11,7 @@ build:
 publish:
 	npm publish
 
-publish-test:
-	make lint
+publish-test: lint
 	npm publish --dry-run
 
 lint:
