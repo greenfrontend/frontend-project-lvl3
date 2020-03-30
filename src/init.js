@@ -118,6 +118,7 @@ export default () => {
         state.form.errors = {
           network: 'errors.network',
         };
+        state.form.valid = false;
         state.form.processState = 'filling';
         throw err;
       });
